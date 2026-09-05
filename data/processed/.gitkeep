@@ -1,0 +1,5 @@
+# Store post-reconstruction artifacts here:
+# - Optimized GLTF / GLB 3D digital twin models
+# - Decimated OBJ / MTL meshes
+# - Texture atlases (.png / .webp)
+# - COLMAP sparse/dense point clouds (.ply)

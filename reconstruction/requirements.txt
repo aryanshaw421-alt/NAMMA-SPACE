@@ -1,0 +1,21 @@
+# Namma Space 3D Reconstruction Pipeline Dependencies
+# Python 3.10+ recommended
+
+# Computer Vision & Image Processing
+opencv-python>=4.8.0
+numpy>=1.24.0
+pillow>=10.0.0
+
+# 3D Mesh & Point Cloud Processing
+trimesh>=4.0.0
+scipy>=1.11.0
+
+# CLI and Utilities
+tqdm>=4.66.0
+click>=8.1.0
+
+# Optional / External Engine Bridges:
+# For COLMAP: Ensure colmap binary is installed on system PATH
+# For 3D Gaussian Splatting / Nerfstudio:
+# nerfstudio>=1.0.0
+# torch>=2.1.0
