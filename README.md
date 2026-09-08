@@ -44,17 +44,17 @@ Optional AR Navigation & Wayfinding         <--- [FUTURE]
 
 ---
 
-## 🎯 Current Status: Round 1 Implementation
+## 🎯 Current Status: Round 1 Implementation & Backend Foundation
 
-| Round 1 Requirement | Status | Implementation Details |
-|---------------------|--------|------------------------|
+| Component / Requirement | Status | Implementation Details |
+|-------------------------|--------|------------------------|
 | **1. Reliable Smartphone Capture SOP** | ✅ Complete | Documented in [`docs/sop/smartphone_capture_sop.md`](docs/sop/smartphone_capture_sop.md) with 3-tier scanning trajectory and AE/AF locking protocol. |
 | **2. Indoor 3D Reconstruction Pipeline** | ⚙️ Architecture & Frame Extractor Ready | Setup in [`reconstruction/`](reconstruction/) with OpenCV Laplacian blur detection keyframe extractor. Ready for capture video ingestion. |
 | **3. Zero-Install Web Viewer** | ✅ Complete | Built with React 19, TypeScript, Three.js, and Vite. Runs natively in any WebGL browser. |
 | **4. Smooth First-Person Free Roaming** | ✅ Complete | Physics-based velocity damping, eye-height grounding, and boundary reference system. |
 | **5. WASD Movement & Mouse Look** | ✅ Complete | Implemented with HTML5 PointerLock API and custom `useFirstPersonControls` hook. |
-
-*Note: Per competition guidelines, POI tagging, spatial search, and AR navigation are strictly out of scope for Round 1 and planned for Round 2.*
+| **6. Modular Backend & Model Delivery** | ✅ Complete | 4-tier architecture (Routes → Controllers → Services → Data) with path traversal shields, MIME headers, and static GLB streaming. |
+| **7. Spatial Integration Contracts** | ✅ Complete | Type-safe interfaces in `backend/src/contracts/spatialContracts.ts` for future POI, spatial search, and NavMesh navigation. |
 
 ---
 
@@ -66,19 +66,25 @@ namma-space/
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── Viewer/          # 3D Canvas, Controls Overlay, Model Selector
-│   │   │   └── UI/              # Top navigation bar, telemetry pills
+│   │   │   └── UI/              # Header, POI Modals, Telemetry Pills
 │   │   ├── hooks/               # useFirstPersonControls, useModelLoader
-│   │   ├── services/            # Round 2 interface stubs (POI, search, pathfinding)
+│   │   ├── services/            # poiService, spatialIndex, pathfindingService
 │   │   ├── styles/              # Dark aesthetic glassmorphic design system
-│   │   └── types/               # TypeScript interfaces
+│   │   └── types/               # TypeScript interfaces (Camera, ModelInfo, POI)
 │   ├── package.json
 │   └── vite.config.ts
-├── backend/                      # Node.js + TypeScript + Express Service
+├── backend/                      # Node.js + TypeScript + Express Service (Port 5001)
 │   ├── src/
-│   │   ├── routes/              # Health and 3D models API
-│   │   └── index.ts             # Express server entry point
+│   │   ├── controllers/         # Health, Model, Search, Navigation controllers
+│   │   ├── services/            # ModelService (cataloging, validation, security)
+│   │   ├── middleware/          # Centralized error handler & AppError hierarchy
+│   │   ├── contracts/           # Spatial integration contracts (POI, Search, Nav)
+│   │   ├── types/               # Standard API response envelopes (ApiResponse)
+│   │   ├── routes/              # Domain routers (health, models, pois, search, navigation)
+│   │   └── index.ts             # Express server entry point & static /models mount
 │   ├── package.json
-│   └── tsconfig.json
+│   ├── tsconfig.json
+│   └── .env.example
 ├── reconstruction/               # Python Computer Vision Pipeline
 │   ├── utils/                   # Laplacian blur detector & quality assurance
 │   ├── extract_frames.py        # Video keyframe extractor script
@@ -88,9 +94,13 @@ namma-space/
 ├── data/                         # Data storage hierarchy
 │   ├── raw/                     # Raw smartphone walkthrough videos & photo sets
 │   ├── processed/               # Reconstructed 3D models (.glb, .gltf, .obj)
-│   └── sample/                  # Sample test assets
+│   ├── sample/                  # Sample test assets
+│   └── pois.json                # Persisted spatial points of interest
 ├── docs/                         # Technical documentation & protocols
 │   ├── architecture/            # System Architecture, Web Viewer, CV Pipeline
+│   ├── backend_architecture.md  # Layered backend design, contracts, error handling
+│   ├── backend_integration.md   # Model-serving pipeline & frontend-backend flow
+│   ├── backend_integration_checklist.md # Production integration checklist
 │   └── sop/                     # Smartphone Capture SOP
 ├── scripts/                      # Automation & runner scripts
 │   ├── setup.sh                 # Single-command workspace dependency installer
@@ -117,6 +127,26 @@ When navigating the 3D Web Viewer:
 | **Esc** | Release mouse cursor |
 | **Load 3D Model** | Drag and drop any `.glb`, `.gltf`, or `.obj` file or choose from backend |
 | **Reset Cam** | Return camera to default starting vantage point |
+
+---
+
+## 🌐 Backend Domain APIs & Endpoints
+
+The backend is organized into 5 distinct architectural domains running on port `5001`:
+
+| Endpoint | Method | Domain | Function |
+|---|---|---|---|
+| `/` | `GET` | System | API root discovery and route catalog |
+| `/api/health` | `GET` | Health | Service status, uptime, environment, and timestamp |
+| `/api/models` | `GET` | Models | Lists available 3D digital twins in `data/processed/` |
+| `/api/models/:id` | `GET` | Models | Resolves metadata for a specific model (path-traversal protected) |
+| `/api/models/:id/file` | `GET` | Models | Direct binary streaming with format-specific MIME headers |
+| `/models/:filename` | `GET` | Static Stream | High-throughput static file streaming via `express.static` |
+| `/api/pois` | `GET`, `POST`, `DELETE` | POIs | Spatial annotations and point-of-interest persistence |
+| `/api/search` | `GET` | Spatial Search | Typed contract placeholder for Member 3 spatial indexing |
+| `/api/navigation/route` | `POST` | Navigation | Typed contract placeholder for Member 3 NavMesh pathfinding |
+
+All API responses conform to the standard typed envelope (`{ success: true, data: {}, error: null }`). For complete architectural details, see [`docs/backend_architecture.md`](docs/backend_architecture.md).
 
 ---
 
