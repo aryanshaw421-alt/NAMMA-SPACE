@@ -82,7 +82,8 @@ export function useModelLoader() {
               }
             },
             (err) => {
-              setError(`Failed to load OBJ model: ${err}`);
+              const msg = err instanceof Error ? err.message : 'Network error or model file could not be read';
+              setError(`Failed to load OBJ model: ${msg}`);
               setLoading(false);
               reject(err);
             }
@@ -103,7 +104,8 @@ export function useModelLoader() {
               }
             },
             (err) => {
-              setError(`Failed to load GLTF/GLB model: ${err}`);
+              const msg = err instanceof Error ? err.message : 'Network error or model file not found';
+              setError(`Failed to load GLTF/GLB model: ${msg}`);
               setLoading(false);
               reject(err);
             }

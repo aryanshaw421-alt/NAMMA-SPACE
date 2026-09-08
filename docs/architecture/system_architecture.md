@@ -49,6 +49,55 @@ Namma Space is an end-to-end intelligent spatial engine that transforms standard
 
 ---
 
+## 1.1 Core Delivery Architecture & Data Flow
+
+```
+User Browser
+    ↓
+React + Three.js
+    ↓
+Backend API
+    ↓
+Model Service
+    ↓
+data/processed/
+    ↓
+GLB/GLTF
+    ↓
+Three.js Viewer
+```
+
+### Layer Responsibilities
+
+1. **User Browser**:
+   - Host environment providing standard WebGL 2.0 runtime, HTML5 PointerLock API, and user input capture (keyboard/mouse).
+   - Zero-install entry point requiring no external plugins or standalone desktop applications.
+
+2. **React + Three.js (Frontend Layer)**:
+   - Orchestrates UI state, HUD telemetry, modals (ModelSelector), and canvas lifecycle.
+   - Manages rendering context, lighting, camera transforms, animation tick loop, and first-person free-roam controls (`useFirstPersonControls`).
+
+3. **Backend API (Express / Node.js)**:
+   - High-throughput REST API listening on port 5001.
+   - Handles health checks (`/api/health`), route dispatching, and system metadata.
+   - Enforces global Cross-Origin Resource Sharing (CORS) headers for seamless decoupled frontend-backend communication.
+
+4. **Model Service (Catalog & Static Dispatcher)**:
+   - Discovers, filters, and catalogs reconstructed 3D assets (`.glb`, `.gltf`, `.obj`, `.ply`) via `/api/models`.
+   - Serves binary assets over HTTP via `express.static` with correct MIME types (`model/gltf-binary`, `model/gltf+json`).
+
+5. **`data/processed/` (Artifact Storage)**:
+   - Dedicated filesystem directory housing production-ready 3D digital twin models produced by the Python CV reconstruction pipeline.
+   - Serves as the boundary contract between offline photogrammetry/NeRF reconstruction and online web streaming.
+
+6. **GLB/GLTF (3D Transmission Asset)**:
+   - Standardized, web-optimized binary 3D container format packaging geometry (vertices, normals), PBR material properties, and embedded textures into an efficient single stream.
+
+7. **Three.js Viewer (Scene Integration & Display)**:
+   - Ingests streamed GLB buffers via `GLTFLoader`, computes spatial bounding boxes, normalizes model coordinates, centers the twin at ground level ($Y=0$), and binds it into the active scene graph for first-person exploration.
+
+---
+
 ## 2. Component Specifications
 
 ### 2.1 3D Reconstruction Pipeline (`reconstruction/`)
