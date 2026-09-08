@@ -6,6 +6,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { healthRouter } from './routes/health.js';
 import { modelsRouter } from './routes/models.js';
+import { poisRouter } from './routes/pois.js';
+import { searchRouter } from './routes/search.js';
+import { navigationRouter } from './routes/navigation.js';
+import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
 
@@ -32,27 +36,53 @@ function getProcessedDataPath(): string {
 }
 
 const processedDataPath = getProcessedDataPath();
-app.use('/models', express.static(processedDataPath));
+app.use(
+  '/models',
+  express.static(processedDataPath, {
+    dotfiles: 'ignore',
+    index: false,
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.glb')) {
+        res.setHeader('Content-Type', 'model/gltf-binary');
+      } else if (filePath.endsWith('.gltf')) {
+        res.setHeader('Content-Type', 'model/gltf+json');
+      }
+    },
+  })
+);
 
-// Routes
+// Domain Routes
 app.use('/api/health', healthRouter);
 app.use('/api/models', modelsRouter);
+app.use('/api/pois', poisRouter);
+app.use('/api/search', searchRouter);
+app.use('/api/navigation', navigationRouter);
 
 // Root greeting & API index
 app.get('/', (_req, res) => {
   res.json({
     message: 'Namma Space Spatial Engine API',
-    version: '0.1.0',
-    phase: 'Round 1: 3D Digital Twin Viewer Foundation',
+    version: '0.2.0',
+    phase: 'Complete: 3D Digital Twin Engine, POI Tagging, & Indoor Wayfinding',
     endpoints: {
       health: '/api/health',
       models: '/api/models',
+      modelById: '/api/models/:id',
+      modelFile: '/api/models/:id/file',
+      pois: '/api/pois',
+      search: '/api/search',
+      navigation: '/api/navigation/route',
     },
   });
 });
+
+// Centralized 404 and Error Handling Middleware
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`[Namma Space Backend] Server listening on port ${PORT}`);
   console.log(`[Namma Space Backend] Serving 3D models from: ${processedDataPath}`);
 });
+
 

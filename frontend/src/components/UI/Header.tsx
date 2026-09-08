@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, RotateCcw, HelpCircle, Layers, UploadCloud } from 'lucide-react';
+import { Box, RotateCcw, HelpCircle, Layers, UploadCloud, MapPin, Plus } from 'lucide-react';
 import type { LoadedModelInfo } from '../../types';
 
 interface HeaderProps {
@@ -9,6 +9,10 @@ interface HeaderProps {
   onToggleHelp: () => void;
   showReferenceRoom: boolean;
   onToggleReferenceRoom: () => void;
+  poiCount: number;
+  isPoiListOpen: boolean;
+  onTogglePoiList: () => void;
+  onOpenAddPoi: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -18,6 +22,10 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleHelp,
   showReferenceRoom,
   onToggleReferenceRoom,
+  poiCount,
+  isPoiListOpen,
+  onTogglePoiList,
+  onOpenAddPoi,
 }) => {
   return (
     <header className="viewer-header">
@@ -26,12 +34,12 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="brand-badge">3D</div>
           <div className="brand-text">
             <span className="brand-title">NAMMA SPACE</span>
-            <span className="brand-tagline">Indoor Spatial Engine</span>
+            <span className="brand-tagline">Campus Digital Twin Engine</span>
           </div>
         </div>
         <div className="phase-indicator">
           <span className="phase-dot" />
-          <span>ROUND 1: Digital Twin Viewer</span>
+          <span>ROUND 2: Spatial Annotations & POIs</span>
         </div>
       </div>
 
@@ -45,12 +53,33 @@ export const Header: React.FC<HeaderProps> = ({
         ) : (
           <div className="active-model-chip empty">
             <Box size={14} className="chip-icon" />
-            <span>Spatial Reference Grid (Ready for 3D Model)</span>
+            <span>Campus Innovation Hub (Spatial Reference)</span>
           </div>
         )}
       </div>
 
       <div className="header-right">
+        {/* POI List Button */}
+        <button
+          className={`nav-action-btn ${isPoiListOpen ? 'active' : ''}`}
+          onClick={onTogglePoiList}
+          title="Open POI & Annotations Drawer"
+        >
+          <MapPin size={16} />
+          <span>Pins ({poiCount})</span>
+        </button>
+
+        {/* Add POI Button */}
+        <button
+          className="nav-action-btn"
+          onClick={onOpenAddPoi}
+          title="Tag new Point of Interest"
+        >
+          <Plus size={16} />
+          <span>Add Pin</span>
+        </button>
+
+        {/* Reference Room Toggle */}
         <button
           className={`nav-action-btn ${showReferenceRoom ? 'active' : ''}`}
           onClick={onToggleReferenceRoom}
@@ -60,6 +89,7 @@ export const Header: React.FC<HeaderProps> = ({
           <span>Ref Room</span>
         </button>
 
+        {/* Reset Camera */}
         <button
           className="nav-action-btn"
           onClick={onResetCamera}
@@ -69,13 +99,14 @@ export const Header: React.FC<HeaderProps> = ({
           <span>Reset Cam</span>
         </button>
 
+        {/* Load 3D Model */}
         <button
           className="nav-action-btn primary"
           onClick={onOpenModelSelector}
           title="Load 3D Model"
         >
           <UploadCloud size={16} />
-          <span>Load 3D Model</span>
+          <span>Load 3D</span>
         </button>
 
         <button

@@ -21,21 +21,27 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
 }) => {
   const [remoteModels, setRemoteModels] = useState<RemoteModelItem[]>([]);
   const [loadingRemote, setLoadingRemote] = useState(false);
+  const [backendOffline, setBackendOffline] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch models available on backend
   const fetchBackendModels = async () => {
     setLoadingRemote(true);
+    setBackendOffline(false);
     try {
       const res = await fetch('http://localhost:5001/api/models');
       if (res.ok) {
         const data = await res.json();
-        setRemoteModels(data.models || []);
+        setRemoteModels(data.data?.models || data.models || []);
+      } else {
+        setRemoteModels([]);
+        setBackendOffline(true);
       }
     } catch {
-      // Backend may be offline or no models yet
+      // Backend offline or connection refused
       setRemoteModels([]);
+      setBackendOffline(true);
     } finally {
       setLoadingRemote(false);
     }
@@ -137,7 +143,14 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
               </button>
             </div>
 
-            {remoteModels.length === 0 ? (
+            {backendOffline ? (
+              <div className="empty-remote-notice">
+                Backend API unreachable at <code>http://localhost:5001</code>.
+                <div className="empty-remote-sub">
+                  Start the backend server (<code>npm run dev</code> in <code>backend/</code>) to load models from <code>data/processed/</code>.
+                </div>
+              </div>
+            ) : remoteModels.length === 0 ? (
               <div className="empty-remote-notice">
                 No reconstructed models found in <code>data/processed/</code> yet.
                 <div className="empty-remote-sub">
